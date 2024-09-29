@@ -35,7 +35,7 @@
 
             <div>
                 <label for="y">Y:</label>
-                <input type="number" id="y" step="0.1" value="0">
+                <input type="number" id="y" step="0.1" max="5" value="0">
             </div>
 
             <div class="checkbox-group">
@@ -65,7 +65,7 @@
 		        </tr>
 		    </thead>
 		    <tbody id="resultsBody">
-		        <!-- Previous results will be appended here -->
+		        <!-- results -->
 		    </tbody>
     	</table>
     </div>
@@ -141,7 +141,7 @@
 			ctx.fill();
 		}
 
-		let attempts = 0; // To count attempts
+		let attempts = 0;
 
 		function checkPoint() {
 			const x = parseFloat(document.getElementById('x').value);
@@ -182,10 +182,8 @@
 				    result.style.color = 'red';
 				}
 
-				// Increment attempt count
 				attempts++;
 
-				// Add result to the table
 				const resultsBody = document.getElementById('resultsBody');
 				const row = resultsBody.insertRow();
 				row.insertCell(0).textContent = attempts; // Attempt number
@@ -249,7 +247,6 @@
 			return false;
 		}
 
-		// Function to limit Y input
 		function limitYInput() {
 			const yInput = document.getElementById('y');
 			yInput.addEventListener('input', function () {
@@ -259,8 +256,20 @@
 				} else if (value < -3) {
 				    this.value = -3;
 				}
+				const valueStr = this.value;
+				const decimalIndex = valueStr.indexOf('.');
+				if (decimalIndex !== -1) {
+					const floatPart = valueStr.substring(decimalIndex + 1);
+					const maxLength = 15;  // maximum length of the floating part
+					
+					if (floatPart.length > maxLength) {
+						this.value = parseFloat(valueStr).toFixed(maxLength);
+					}
+				}
 			});
 		}
+
+
 
 		// Initial setup
 		setupExclusiveCheckboxes();

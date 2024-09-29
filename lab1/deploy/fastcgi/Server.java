@@ -70,9 +70,25 @@ public class Server {
 						double y = requestBodyJson.getJsonNumber("y").doubleValue();
 						double r = requestBodyJson.getJsonNumber("R").doubleValue();
 
+						String xStr = requestBodyJson.getJsonNumber("x").toString();
+						String yStr = requestBodyJson.getJsonNumber("y").toString();
+						String rStr = requestBodyJson.getJsonNumber("R").toString();
 
+						if (!xStr.equals(String.valueOf(x).replaceAll("\\.0$", ""))) {
+							System.out.println(errorResult("Precision error in 'x' value" + String.valueOf(x) + xStr));
+							continue;
+						}
+	
+						if (!yStr.equals(String.valueOf(y).replaceAll("\\.0$", ""))) {
+							System.out.println(errorResult("Precision error in 'y' value"));
+							continue;
+						}
+	
+						if (!rStr.equals(String.valueOf(r).replaceAll("\\.0$", ""))) {
+							System.out.println(errorResult("Precision error in 'r' value"));
+							continue;
+						}
 
-						// Validation checks
 						List<Double> validXValues = Arrays.asList(-2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0);
 						List<Double> validRValues = Arrays.asList(1.0, 1.5, 2.0, 2.5, 3.0);
 
