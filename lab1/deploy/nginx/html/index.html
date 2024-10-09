@@ -4,18 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Area Checker</title>
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-   <link rel="stylesheet" href="/static/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/main.css">
 </head>
 
 <body>
     <div class="container">
-        <div class="header">
+        <header class="header">
             <h1>Area Checker</h1>
             <p>Ильин Никита | P3210 | 408698</p>
-        </div>
+        </header>
 
         <div class="controls">
             <div>
@@ -52,231 +52,227 @@
         <button onclick="checkPoint()">Check Point</button>
         <div id="result" class="result"></div>
         <table id="resultsTable">
-		    <thead>
-		        <tr>
-		            <th>№</th>
-		            <th>X</th>
-		            <th>Y</th>
-		            <th>R</th>
-		            <th>Result</th>
-		            <th>Curr.time</th>
-		            <th>Ex. Time</th>
-
-		        </tr>
-		    </thead>
-		    <tbody id="resultsBody">
-		        <!-- results -->
-		    </tbody>
-    	</table>
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>X</th>
+                    <th>Y</th>
+                    <th>R</th>
+                    <th>Result</th>
+                    <th>Curr.time</th>
+                    <th>Ex. Time</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+                <!-- results -->
+            </tbody>
+        </table>
     </div>
 
     <script>
-    	const canvas = document.getElementById('canvas');
-		const ctx = canvas.getContext('2d');
-		const width = canvas.width;
-		const height = canvas.height;
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
 
-		function drawCoordinateSystem(R) {
-			ctx.clearRect(0, 0, width, height);
-			const scale = width / (4 * R);
+        function drawCoordinateSystem(R) {
+            ctx.clearRect(0, 0, width, height);
+            const scale = width / (4 * R);
 
-			// Draw axes
-			ctx.beginPath();
-			ctx.moveTo(0, height / 2);
-			ctx.lineTo(width, height / 2);
-			ctx.moveTo(width / 2, 0);
-			ctx.lineTo(width / 2, height);
-			ctx.stroke();
+            // Draw axes
+            ctx.beginPath();
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+            ctx.stroke();
 
-			// Draw R and R/2 marks
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.fillStyle = "#000000";
-			const markings = [-R, -R / 2, R / 2, R];
+            // Draw R and R/2 marks
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = "#000000";
+            const markings = [-R, -R / 2, R / 2, R];
 
-			markings.forEach(mark => {
-				const x = width / 2 + mark * scale;
-				const y = height / 2 - mark * scale;
+            markings.forEach(mark => {
+                const x = width / 2 + mark * scale;
+                const y = height / 2 - mark * scale;
 
-				// X-axis markings
-				ctx.beginPath();
-				ctx.moveTo(x, height / 2 - 5);
-				ctx.lineTo(x, height / 2 + 5);
-				ctx.stroke();
-				ctx.fillText(mark === 0 ? '' : mark.toString(), x, height / 2 + 20);
+                // X-axis markings
+                ctx.beginPath();
+                ctx.moveTo(x, height / 2 - 5);
+                ctx.lineTo(x, height / 2 + 5);
+                ctx.stroke();
+                ctx.fillText(mark === 0 ? '' : mark.toString(), x, height / 2 + 20);
 
-				// Y-axis markings
-				ctx.beginPath();
-				ctx.moveTo(width / 2 - 5, y);
-				ctx.lineTo(width / 2 + 5, y);
-				ctx.stroke();
-				ctx.fillText(mark === 0 ? '' : mark.toString(), width / 2 - 20, y);
-			});
+                // Y-axis markings
+                ctx.beginPath();
+                ctx.moveTo(width / 2 - 5, y);
+                ctx.lineTo(width / 2 + 5, y);
+                ctx.stroke();
+                ctx.fillText(mark === 0 ? '' : mark.toString(), width / 2 - 20, y);
+            });
 
-			// Draw axis labels
-			ctx.fillText('X', width - 10, height / 2 - 20);
-			ctx.fillText('Y', width / 2 + 20, 10);
-		}
+            // Draw axis labels
+            ctx.fillText('X', width - 10, height / 2 - 20);
+            ctx.fillText('Y', width / 2 + 20, 10);
+        }
 
-		function drawAreas(R) {
-			const scale = width / (4 * R);
+        function drawAreas(R) {
+            const scale = width / (4 * R);
 
-			// Rectangle
-			ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
-			ctx.fillRect(width / 2 - R * scale, height / 2 - R / 2 * scale, R * scale, R / 2 * scale);
+            // Rectangle
+            ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
+            ctx.fillRect(width / 2 - R * scale, height / 2 - R / 2 * scale, R * scale, R / 2 * scale);
 
-			// Triangle
-			ctx.beginPath();
-			ctx.moveTo(width / 2, height / 2);
-			ctx.lineTo(width / 2 + R * scale, height / 2);
-			ctx.lineTo(width / 2, height / 2 + R / 2 * scale);
-			ctx.closePath();
-			ctx.fill();
+            // Triangle
+            ctx.beginPath();
+            ctx.moveTo(width / 2, height / 2);
+            ctx.lineTo(width / 2 + R * scale, height / 2);
+            ctx.lineTo(width / 2, height / 2 + R / 2 * scale);
+            ctx.closePath();
+            ctx.fill();
 
-			// Quarter circle
-			ctx.beginPath();
-			ctx.moveTo(width / 2, height / 2);
-			ctx.arc(width / 2, height / 2, R * scale, -Math.PI / 2, 0);
-			ctx.closePath();
-			ctx.fill();
-		}
+            // Quarter circle
+            ctx.beginPath();
+            ctx.moveTo(width / 2, height / 2);
+            ctx.arc(width / 2, height / 2, R * scale, -Math.PI / 2, 0);
+            ctx.closePath();
+            ctx.fill();
+        }
 
-		let attempts = 0;
+        let attempts = 0;
 
-		function checkPoint() {
-			const x = parseFloat(document.getElementById('x').value);
-			const y = parseFloat(document.getElementById('y').value);
-			const R = getSelectedR();
+        function checkPoint() {
+            const x = parseFloat(document.getElementById('x').value);
+            const y = parseFloat(document.getElementById('y').value);
+            const R = getSelectedR();
 
-			if (isNaN(x) || isNaN(y) || R === null) {
-				alert('Please enter valid numbers for X, Y, and select one R value');
-				return;
-			}
+            if (isNaN(x) || isNaN(y) || R === null) {
+                alert('Please enter valid numbers for X, Y, and select one R value');
+                return;
+            }
 
-			const requestBody = {method: 'check-hit', x: x, y: y, R: R };
+            const requestBody = {method: 'check-hit', x: x, y: y, R: R };
 
-			fetch('/fastcgi', {
-				method: 'POST',
-				headers: {
-				    'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(requestBody),
-			})
-			.then(response => response.json())
-			.then(data => {
-				drawCoordinateSystem(R);
-				drawAreas(R);
+            fetch('/fastcgi', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            })
+            .then(response => response.json())
+            .then(data => {
+                drawCoordinateSystem(R);
+                drawAreas(R);
 
-				const scale = width / (4 * R);
-				ctx.fillStyle = 'red';
-				ctx.beginPath();
-				ctx.arc(width / 2 + x * scale, height / 2 - y * scale, 3, 0, 2 * Math.PI);
-				ctx.fill();
+                const scale = width / (4 * R);
+                ctx.fillStyle = 'red';
+                ctx.beginPath();
+                ctx.arc(width / 2 + x * scale, height / 2 - y * scale, 3, 0, 2 * Math.PI);
+                ctx.fill();
 
-				const result = document.getElementById('result');
-				if (data.hit) {
-				    result.textContent = `The point (${x}, ${y}) is in one of the areas.`;
-				    result.style.color = 'green';
-				} else {
-				    result.textContent = `The point (${x}, ${y}) is not in any of the areas.`;
-				    result.style.color = 'red';
-				}
+                const result = document.getElementById('result');
+                if (data.hit) {
+                    result.textContent = `The point (${x}, ${y}) is in one of the areas.`;
+                    result.style.color = 'green';
+                } else {
+                    result.textContent = `The point (${x}, ${y}) is not in any of the areas.`;
+                    result.style.color = 'red';
+                }
 
-				attempts++;
+                attempts++;
 
-				const resultsBody = document.getElementById('resultsBody');
-				const row = resultsBody.insertRow();
-				row.insertCell(0).textContent = attempts; // Attempt number
-				row.insertCell(1).textContent = x;       // X value
-				row.insertCell(2).textContent = y;       // Y value
-				row.insertCell(3).textContent = R;       // R value
-				row.insertCell(4).textContent = data.hit ? 'Inside' : 'Outside'; // Result
-				row.insertCell(5).textContent = data.currentDateTime; // Current DateTime from JSON
-				row.insertCell(6).textContent = `${data.executionTime} ms`; // Execution Time from JSON
+                const resultsBody = document.getElementById('resultsBody');
+                const row = resultsBody.insertRow();
+                row.insertCell(0).textContent = attempts; // Attempt number
+                row.insertCell(1).textContent = x;       // X value
+                row.insertCell(2).textContent = y;       // Y value
+                row.insertCell(3).textContent = R;       // R value
+                row.insertCell(4).textContent = data.hit ? 'Inside' : 'Outside'; // Result
+                row.insertCell(5).textContent = data.currentDateTime; // Current DateTime from JSON
+                row.insertCell(6).textContent = `${data.executionTime} ms`; // Execution Time from JSON
 
-			})
-			.catch(error => console.error('Error:', error));
-		}
+            })
+            .catch(error => console.error('Error:', error));
+        }
 
+        function getSelectedR() {
+            const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+            let selectedR = null;
 
-		function getSelectedR() {
-			const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
-			let selectedR = null;
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedR = parseFloat(checkbox.value);
+                }
+            });
 
-			checkboxes.forEach(checkbox => {
-				if (checkbox.checked) {
-				    selectedR = parseFloat(checkbox.value);
-				}
-			});
+            return selectedR;
+        }
 
-			return selectedR;
-		}
+        function setupExclusiveCheckboxes() {
+            const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
 
-		function setupExclusiveCheckboxes() {
-			const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    if (this.checked) {
+                        checkboxes.forEach(otherCheckbox => {
+                            if (otherCheckbox !== this) {
+                                otherCheckbox.checked = false;
+                            }
+                        });
+                    }
+                });
+            });
+        }
 
-			checkboxes.forEach(checkbox => {
-				checkbox.addEventListener('change', function () {
-				    if (this.checked) {
-				        checkboxes.forEach(otherCheckbox => {
-				            if (otherCheckbox !== this) {
-				                otherCheckbox.checked = false;
-				            }
-				        });
-				    }
-				});
-			});
-		}
+        function isInArea(x, y, R) {
+            // Rectangle
+            if (x >= -R && x <= 0 && y <= R / 2 && y >= 0) {
+                return true;
+            }
 
-		function isInArea(x, y, R) {
-			// Rectangle
-			if (x >= -R && x <= 0 && y <= R / 2 && y >= 0) {
-				return true;
-			}
+            // Triangle
+            if (x >= 0 && y >= x / 2 - R / 2 && y <= 0) {
+                return true;
+            }
 
-			// Triangle
-			if (x >= 0 && y >= x / 2 - R / 2 && y <= 0) {
-				return true;
-			}
+            // Quarter circle
+            if (x >= 0 && y >= 0 && (x * x + y * y <= R * R)) {
+                return true;
+            }
 
-			// Quarter circle
-			if (x >= 0 && y >= 0 && (x * x + y * y <= R * R)) {
-				return true;
-			}
+            return false;
+        }
 
-			return false;
-		}
+        function limitYInput() {
+            const yInput = document.getElementById('y');
+            yInput.addEventListener('input', function () {
+                let value = parseFloat(this.value);
+                if (value > 5) {
+                    this.value = 5;
+                } else if (value < -3) {
+                    this.value = -3;
+                }
+                const valueStr = this.value;
+                const decimalIndex = valueStr.indexOf('.');
+                if (decimalIndex !== -1) {
+                    const floatPart = valueStr.substring(decimalIndex + 1);
+                    const maxLength = 15;  // maximum length of the floating part
+                    
+                    if (floatPart.length > maxLength) {
+                        this.value = parseFloat(valueStr).toFixed(maxLength);
+                    }
+                }
+            });
+        }
 
-		function limitYInput() {
-			const yInput = document.getElementById('y');
-			yInput.addEventListener('input', function () {
-				let value = parseFloat(this.value);
-				if (value > 5) {
-				    this.value = 5;
-				} else if (value < -3) {
-				    this.value = -3;
-				}
-				const valueStr = this.value;
-				const decimalIndex = valueStr.indexOf('.');
-				if (decimalIndex !== -1) {
-					const floatPart = valueStr.substring(decimalIndex + 1);
-					const maxLength = 15;  // maximum length of the floating part
-					
-					if (floatPart.length > maxLength) {
-						this.value = parseFloat(valueStr).toFixed(maxLength);
-					}
-				}
-			});
-		}
-
-
-
-		// Initial setup
-		setupExclusiveCheckboxes();
-		limitYInput(); // Call to limit Y input
-		drawCoordinateSystem(3);
-		drawAreas(3);
-	</script>
+        // Initial setup
+        setupExclusiveCheckboxes();
+        limitYInput(); // Call to limit Y input
+        drawCoordinateSystem(3);
+        drawAreas(3);
+    </script>
 </body>
 
 </html>

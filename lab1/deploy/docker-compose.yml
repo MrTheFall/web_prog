@@ -12,6 +12,4 @@ services:
 
   fastcgi_app:
     build: ./fastcgi
-    ports:
-       - "9000"
     restart: always
