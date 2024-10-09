@@ -93,7 +93,8 @@ public class Server {
 						List<Double> validRValues = Arrays.asList(1.0, 1.5, 2.0, 2.5, 3.0);
 
 						if (!validXValues.contains(x) || y < -3.0 || y > 5.0 || !validRValues.contains(r)) {
-							System.out.println(errorResult("Invalid x, y or R value"));
+							String error = "{\"error\":\"Invalid x, y or R value\"}";
+							System.out.println(errorResultJson(error));
 							continue;
 						}
 
@@ -147,6 +148,16 @@ public class Server {
         return """
                 HTTP/1.1 400 Bad Request
                 Content-Type: text/html
+                Content-Length: %d
+                
+                %s
+                """.formatted(error.getBytes(StandardCharsets.UTF_8).length, error);
+    }
+	
+	private static String errorResultJson(String error) {
+        return """
+                HTTP/1.1 400 Bad Request
+                Content-Type: application/json
                 Content-Length: %d
                 
                 %s
