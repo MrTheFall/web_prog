@@ -34,7 +34,7 @@ body {
 .header h1 {
     font-size: 24px;
     margin-bottom: 5px;
-    color: #007BFF;
+    color: #ff00dd;
 }
 
 .header p {
@@ -83,7 +83,7 @@ body {
 }
 
 canvas {
-    border: 1px solid #007BFF;
+    border: 1px solid #ff00dd;
     border-radius: 10px;
     grid-column: span 2;
     background-color: #f9f9f9;
@@ -93,7 +93,7 @@ canvas {
 button {
     grid-column: span 2;
     padding: 10px;
-    background-color: #007BFF;
+    background-color: #ff00dd;
     color: white;
     border: none;
     border-radius: 5px;
@@ -103,7 +103,7 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #f700d6;
 }
 
 .result {
@@ -124,7 +124,7 @@ button:hover {
 }	
 
 #resultsTable > thead > tr > th{
-	border: 1px solid #007BFF;
+	border: 1px solid #ff00dd;
 	padding: 8px;
 }
 #resultsTable > tbody > tr > td {
