@@ -98,7 +98,7 @@ public class Server {
 							continue;
 						}
 
-						System.out.println(areaCheckPage(x, y, r));
+						System.out.println(areaCheck(x, y, r));
 						continue;
 					}
 					
@@ -147,6 +147,7 @@ public class Server {
     private static String errorResult(String error) {
         return """
                 HTTP/1.1 400 Bad Request
+                Status: 400
                 Content-Type: text/html
                 Content-Length: %d
                 
@@ -157,6 +158,7 @@ public class Server {
 	private static String errorResultJson(String error) {
         return """
                 HTTP/1.1 400 Bad Request
+                Status: 400
                 Content-Type: application/json
                 Content-Length: %d
                 
@@ -164,28 +166,7 @@ public class Server {
                 """.formatted(error.getBytes(StandardCharsets.UTF_8).length, error);
     }
 
-    private static String getHelloPage() {
-        String content = """
-                <html>
-                    <head>
-                        <title>Java FastCGI Hello World</title>
-                    </head>
-                    <body>
-                        <h1>From Java FastCGI:</h1>
-                        <p>Hello, World!</p>
-                    </body>
-                </html>
-                """;
-        return """
-                HTTP/1.1 200 OK
-                Content-Type: text/html
-                Content-Length: %d
-                
-                %s
-                """.formatted(content.getBytes(StandardCharsets.UTF_8).length, content);
-    }
-
-	private static String areaCheckPage(double x, double y, double r) {
+	private static String areaCheck(double x, double y, double r) {
 		long startTime = System.currentTimeMillis();
 		String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")); 
 		boolean isHit = isInArea(x, y, r);
@@ -199,8 +180,6 @@ public class Server {
 		        %s
 		        """.formatted(content.getBytes(StandardCharsets.UTF_8).length, content);
 	}
-
-
 
     private static boolean isInArea(double x, double y, double r) {
         // Rectangle
