@@ -109,7 +109,7 @@ public class Server {
 		        System.out.println(errorResult("Unsupported HTTP method: " + method));
 		    }
 		    catch (Exception e) {
-		        System.out.println(errorResult("Server error happened"));
+		        System.out.println(errorResult("Server error happened" + e.toString()));
 		    }
         }
     }
