@@ -19,7 +19,7 @@ public class Server {
     public static void main(String[] args) throws IOException {
         FCGIInterface fcgiInterface = new FCGIInterface();
         while (fcgiInterface.FCGIaccept() >= 0) {
-			processRequest();
+            processRequest();
         }
     }
 
@@ -72,11 +72,16 @@ public class Server {
         }
 
         String method = requestBodyJson.getString("method");
-        if ("check-hit".equals(method)) {
-            handleCheckHit(requestBodyJson);
-        } else {
-            System.out.println(errorResult("Method not implemented"));
+
+        switch (method) {
+            case "check-hit":
+                handleCheckHit(requestBodyJson);
+                break;
+            default:
+                System.out.println(errorResult("Method not implemented"));
+                break;
         }
+
     }
 
     private static void handleCheckHit(JsonObject requestBodyJson) {
