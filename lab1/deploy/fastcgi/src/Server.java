@@ -15,124 +15,128 @@ import java.io.StringReader;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 
-
 public class Server {
     public static void main(String[] args) throws IOException {
         FCGIInterface fcgiInterface = new FCGIInterface();
         while (fcgiInterface.FCGIaccept() >= 0) {
-            try {
-		        String method = FCGIInterface.request.params.getProperty("REQUEST_METHOD");
-		        if (method == null) {
-		            System.out.println(errorResult("Unsupported HTTP method: null"));
-		            continue;
-		        }
-
-		        if (method.equalsIgnoreCase("GET")) {
-		            String queryString = FCGIInterface.request.params.getProperty("QUERY_STRING");
-		            if (queryString != null) {
-		                continue;
-		            } else {
-		                System.out.println(errorResult("No parameters provided"));
-		            }
-		            continue;
-		        }
-		        if (method.equals("POST")) {
-					var contentType = FCGIInterface.request.params.getProperty("CONTENT_TYPE");
-					if (contentType == null) {
-						System.out.println(errorResult("Content-Type is null"));
-						continue;
-					}
-
-					if (!contentType.equals("application/json")) {
-						System.out.println(errorResult("Content-Type is not supported"));
-						continue;
-					}
-
-					var requestBody = readRequestBody();
-					JsonObject requestBodyJson = parseJson(requestBody);
-					if (requestBodyJson == null) {
-						System.out.println(errorResult("Request body could not be parsed as JSON"));
-						continue;
-					}
-					
-					if (!requestBodyJson.containsKey("method")) {
-						System.out.println(errorResult("No method specified"));
-						continue;
-					}
-
-					if (requestBodyJson.getString("method").equals("check-hit")) {
-						if (!requestBodyJson.containsKey("x") || !requestBodyJson.containsKey("y") || !requestBodyJson.containsKey("R")) {
-							System.out.println(errorResult("Missing x, y or R value"));
-							continue;
-						}
-
-						double x = requestBodyJson.getJsonNumber("x").doubleValue();
-						double y = requestBodyJson.getJsonNumber("y").doubleValue();
-						double r = requestBodyJson.getJsonNumber("R").doubleValue();
-
-						String xStr = requestBodyJson.getJsonNumber("x").toString();
-						String yStr = requestBodyJson.getJsonNumber("y").toString();
-						String rStr = requestBodyJson.getJsonNumber("R").toString();
-
-						if (!xStr.equals(String.valueOf(x).replaceAll("\\.0$", ""))) {
-							System.out.println(errorResult("Precision error in 'x' value" + String.valueOf(x) + xStr));
-							continue;
-						}
-	
-						if (!yStr.equals(String.valueOf(y).replaceAll("\\.0$", ""))) {
-							System.out.println(errorResult("Precision error in 'y' value"));
-							continue;
-						}
-	
-						if (!rStr.equals(String.valueOf(r).replaceAll("\\.0$", ""))) {
-							System.out.println(errorResult("Precision error in 'r' value"));
-							continue;
-						}
-
-						List<Double> validXValues = Arrays.asList(-2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0);
-						List<Double> validRValues = Arrays.asList(1.0, 1.5, 2.0, 2.5, 3.0);
-
-						if (!validXValues.contains(x) || y < -3.0 || y > 5.0 || !validRValues.contains(r)) {
-							String error = "{\"error\":\"Invalid x, y or R value\"}";
-							System.out.println(errorResultJson(error));
-							continue;
-						}
-
-						System.out.println(areaCheck(x, y, r));
-						continue;
-					}
-					
-					System.out.println(errorResult("Method not implemented"));
-					continue;
-				}
-
-		        System.out.println(errorResult("Unsupported HTTP method: " + method));
-		    }
-		    catch (Exception e) {
-		        System.out.println(errorResult("Server error happened" + e.toString()));
-		    }
+			processRequest();
         }
     }
 
-	private static JsonObject parseJson(String json) {
-		try (JsonReader reader = Json.createReader(new StringReader(json))) {
-		    return reader.readObject();
-		} catch (Exception e) {
-		    return null;
-		}
-	}
+    private static void processRequest() throws IOException {
+        String method = FCGIInterface.request.params.getProperty("REQUEST_METHOD");
 
-    private static Map<String, String> parseQueryString(String queryString) {
-        return Arrays.stream(queryString.split("&"))
-                .map(keyValue -> keyValue.split("="))
-                .collect(Collectors.toMap(
-                        pair -> pair[0],
-                        pair -> pair.length > 1 ? pair[1] : ""));
+        if (method == null) {
+            System.out.println(errorResult("Unsupported HTTP method: null"));
+            return;
+        }
+
+        switch (method.toUpperCase()) {
+            case "GET":
+                handleGet();
+                break;
+            case "POST":
+                handlePost();
+                break;
+            default:
+                System.out.println(errorResult("Unsupported HTTP method: " + method));
+        }
+    }
+
+    private static void handleGet() {
+        String queryString = FCGIInterface.request.params.getProperty("QUERY_STRING");
+        if (queryString != null) {
+            // Currently no handlers for GET requests
+        } else {
+            System.out.println(errorResult("No parameters provided"));
+        }
+    }
+
+    private static void handlePost() throws IOException {
+        var contentType = FCGIInterface.request.params.getProperty("CONTENT_TYPE");
+        if (contentType == null) {
+            System.out.println(errorResult("Content-Type is null"));
+            return;
+        }
+
+        if (!contentType.equals("application/json")) {
+            System.out.println(errorResult("Content-Type is not supported"));
+            return;
+        }
+
+        var requestBody = readRequestBody();
+        JsonObject requestBodyJson = parseJson(requestBody);
+        if (requestBodyJson == null || !requestBodyJson.containsKey("method")) {
+            System.out.println(errorResult("Request body could not be parsed as JSON or no method specified"));
+            return;
+        }
+
+        String method = requestBodyJson.getString("method");
+        if ("check-hit".equals(method)) {
+            handleCheckHit(requestBodyJson);
+        } else {
+            System.out.println(errorResult("Method not implemented"));
+        }
+    }
+
+    private static void handleCheckHit(JsonObject requestBodyJson) {
+        if (!requestBodyJson.containsKey("x") || !requestBodyJson.containsKey("y") || !requestBodyJson.containsKey("R")) {
+            System.out.println(errorResult("Missing x, y or R value"));
+            return;
+        }
+
+        double x = requestBodyJson.getJsonNumber("x").doubleValue();
+        double y = requestBodyJson.getJsonNumber("y").doubleValue();
+        double r = requestBodyJson.getJsonNumber("R").doubleValue();
+
+        String error = validatePrecision(requestBodyJson, x, y, r);
+        if (error != null) {
+            System.out.println(error);
+            return;
+        }
+
+        if (!isValidValues(x, y, r)) {
+            String errorMessage = "{\"error\":\"Invalid x, y or R value\"}";
+            System.out.println(errorResultJson(errorMessage));
+            return;
+        }
+
+        System.out.println(areaCheck(x, y, r));
+    }
+
+    private static String validatePrecision(JsonObject requestBodyJson, double x, double y, double r) {
+        String xStr = requestBodyJson.getJsonNumber("x").toString();
+        String yStr = requestBodyJson.getJsonNumber("y").toString();
+        String rStr = requestBodyJson.getJsonNumber("R").toString();
+
+        if (!xStr.equals(String.valueOf(x).replaceAll("\\.0$", ""))) {
+            return errorResult("Precision error in 'x' value: " + xStr);
+        }
+        if (!yStr.equals(String.valueOf(y).replaceAll("\\.0$", ""))) {
+            return errorResult("Precision error in 'y' value");
+        }
+        if (!rStr.equals(String.valueOf(r).replaceAll("\\.0$", ""))) {
+            return errorResult("Precision error in 'r' value");
+        }
+        return null;
+    }
+
+    private static boolean isValidValues(double x, double y, double r) {
+        List<Double> validXValues = Arrays.asList(-2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0);
+        List<Double> validRValues = Arrays.asList(1.0, 1.5, 2.0, 2.5, 3.0);
+        return validXValues.contains(x) && y >= -3.0 && y <= 5.0 && validRValues.contains(r);
+    }
+
+    private static JsonObject parseJson(String json) {
+        try (JsonReader reader = Json.createReader(new StringReader(json))) {
+            return reader.readObject();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static String readRequestBody() throws IOException {
         FCGIInterface.request.inStream.fill();
-
         var contentLength = FCGIInterface.request.inStream.available();
         ByteBuffer buffer = ByteBuffer.allocate(contentLength);
         var readBytes = FCGIInterface.request.inStream.read(buffer.array(), 0, contentLength);
@@ -154,8 +158,8 @@ public class Server {
                 %s
                 """.formatted(error.getBytes(StandardCharsets.UTF_8).length, error);
     }
-	
-	private static String errorResultJson(String error) {
+
+    private static String errorResultJson(String error) {
         return """
                 HTTP/1.1 400 Bad Request
                 Status: 400
@@ -166,20 +170,20 @@ public class Server {
                 """.formatted(error.getBytes(StandardCharsets.UTF_8).length, error);
     }
 
-	private static String areaCheck(double x, double y, double r) {
-		long startTime = System.currentTimeMillis();
-		String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")); 
-		boolean isHit = isInArea(x, y, r);
-		long executionTime = System.currentTimeMillis() - startTime;
-		String content = "{\"hit\": " + isHit + ", \"currentDateTime\": \"" + now + "\", \"executionTime\": " + executionTime + "}";
-		return """
-		        HTTP/1.1 200 OK
-		        Content-Type: application/json
-		        Content-Length: %d
+    private static String areaCheck(double x, double y, double r) {
+        long startTime = System.currentTimeMillis();
+        String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        boolean isHit = isInArea(x, y, r);
+        long executionTime = System.currentTimeMillis() - startTime;
+        String content = "{\"hit\": " + isHit + ", \"currentDateTime\": \"" + now + "\", \"executionTime\": " + executionTime + "}";
+        return """
+                HTTP/1.1 200 OK
+                Content-Type: application/json
+                Content-Length: %d
 
-		        %s
-		        """.formatted(content.getBytes(StandardCharsets.UTF_8).length, content);
-	}
+                %s
+                """.formatted(content.getBytes(StandardCharsets.UTF_8).length, content);
+    }
 
     private static boolean isInArea(double x, double y, double r) {
         // Rectangle
