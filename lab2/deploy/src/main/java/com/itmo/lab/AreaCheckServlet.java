@@ -22,10 +22,6 @@ public class AreaCheckServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        /*if (!Boolean.TRUE.equals(request.getAttribute("forwardedFromController"))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
-            return;
-        }*/
 
         String sessionId = request.getSession().getId();
         Map<String, List<CheckResult>> userResults = getUserResults();
@@ -86,8 +82,10 @@ public class AreaCheckServlet extends HttpServlet {
             setRequestAttributes(request, sessionId, userResults, null);
             forwardToIndex(request, response);
         } catch (NumberFormatException e) {
-            setRequestAttributes(request, sessionId, userResults, "Invalid number format for x, y, or R");
-            forwardToIndex(request, response);
+            //setRequestAttributes(request, sessionId, userResults, "Invalid number format for x, y, or R");
+            //forwardToIndex(request, response);
+            request.setAttribute("error", "Invalid number format for x, y, or R:"+e.toString());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
         }
     }
 
