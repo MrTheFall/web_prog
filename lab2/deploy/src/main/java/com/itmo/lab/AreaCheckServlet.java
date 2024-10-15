@@ -22,10 +22,10 @@ public class AreaCheckServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        if (!Boolean.TRUE.equals(request.getAttribute("forwardedFromController"))) {
+        /*if (!Boolean.TRUE.equals(request.getAttribute("forwardedFromController"))) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return;
-        }
+        }*/
 
         String sessionId = request.getSession().getId();
         Map<String, List<CheckResult>> userResults = getUserResults();
@@ -49,6 +49,12 @@ public class AreaCheckServlet extends HttpServlet {
     private void handleParameterProcessing(HttpServletRequest request, HttpServletResponse response,
                                            String sessionId, Map<String, List<CheckResult>> userResults,
                                            long startTime, String xParam, String yParam, String rParam) throws ServletException, IOException {
+        if (xParam == null && yParam == null && rParam == null)
+        {
+            setRequestAttributes(request, sessionId, userResults, null);
+            forwardToIndex(request, response);
+            return;
+        }
         try {
             int x = Integer.parseInt(xParam);
             double y = Double.parseDouble(yParam);
