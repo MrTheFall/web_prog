@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:faces="jakarta.faces"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:f="jakarta.faces.core"
+      xmlns:h="jakarta.faces.html"
+      xmlns:pt="jakarta.faces.passthrough"
+      xmlns:cc="jakarta.faces.composite"
+      xmlns:my="jakarta.faces.component"
+      xmlns:c="jakarta.tags.core"
+      xmlns:fn="jakarta.tags.functions"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <meta charset="UTF-8"/>
+    <title>Interactive Clock</title>
+    <link rel="stylesheet" href="styles/main.css"/>
+    <link rel="stylesheet" href="styles/clock.css"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap"/>
+</h:head>
+<h:body>
+    <div class="container">
+        <header class="header">
+            <h1>
+                <h:link outcome="/hits" styleClass="header-link">Интерактивные часы</h:link>
+            </h1>
+            <p>Ильин Никита | P3210 | 408698</p>
+        </header>
+        <div class="clock-container">
+            <h2 class="clock-time" id="clockTime">00:00:00</h2>
+            <p class="clock-date" id="clockDate">yyyy-mm-dd</p>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeString = `\${hours}:\${minutes}:\${seconds}`;
+            
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateString = `\${year}-\${month}-\${day}`;
+            
+            document.getElementById('clockTime').textContent = timeString;
+            document.getElementById('clockDate').textContent = dateString;
+        }
+
+        setInterval(updateClock, 13000);
+        updateClock();
+    </script>
+
+</h:body>
+</html>

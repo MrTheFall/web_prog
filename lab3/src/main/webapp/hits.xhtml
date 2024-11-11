@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:faces="jakarta.faces"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:f="jakarta.faces.core"
+      xmlns:h="jakarta.faces.html"
+      xmlns:pt="jakarta.faces.passthrough"
+      xmlns:cc="jakarta.faces.composite"
+      xmlns:my="jakarta.faces.component"
+      xmlns:c="jakarta.tags.core"
+      xmlns:fn="jakarta.tags.functions"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <meta charset="UTF-8"/>
+    <title>Area Checker</title>
+    <link rel="stylesheet" href="styles/main.css"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap"/>
+</h:head>
+<h:body>
+    <div class="container">
+        <header class="header">
+            <h1>
+                <h:link outcome="index" styleClass="header-link">Area Checker</h:link>
+            </h1>
+            <p>Ильин Никита | P3210 | 408698 | Вар. 413431</p>
+        </header>
+        <h:form id="areaCheckForm" class="controls">
+            <div>
+                <h:outputLabel for="x" value="X:" styleClass="controls-label"/>
+                <p:selectOneMenu value="#{areaCheckBean.x}" id="x" required="true" styleClass="controls-input">
+                    <f:selectItems value="#{areaCheckBean.xValues}"/>
+                </p:selectOneMenu>
+            </div>
+            <div>
+                <h:outputLabel for="y" value="Y:" styleClass="controls-label"/>
+                <p:inputText value="#{areaCheckBean.y}" id="y" required="true"
+                             type="number" oninput="limitYInput();" max="5" min="-3" step="any"
+                             styleClass="controls-input"></p:inputText>
+            </div>
+            <div class="checkbox-group">
+                <h:outputLabel value="R:"/>
+                <h:selectOneRadio id="r" value="#{areaCheckBean.r}" required="true">
+                    <f:selectItems value="#{areaCheckBean.rValues}"/>
+                </h:selectOneRadio>
+            </div>
+            <h:commandButton value="Check Point" 
+                action="#{areaCheckBean.checkPoint()}" 
+                styleClass="submit-button"
+                onclick="return validateRYInput();">
+                <f:ajax execute="@form" render="resultsTable"/>
+            </h:commandButton>
+        
+
+        </h:form>
+        <h:commandLink id="canvasCommandLink" action="#{areaCheckBean.checkPoint()}" onclick="return validateRInput();">
+            <canvas id="canvas" width="400" height="400"/>
+            <f:ajax execute="@form" render="resultsTable areaCheckForm:x"/>
+        </h:commandLink>
+        <div id="result" class="result"></div>
+        <p:dataTable id="resultsTable" value="#{areaCheckBean.getResults()}" var="result">
+            <p:column headerText="№">
+                <h:outputText value="#{result.id}"/>
+            </p:column>
+            <p:column headerText="X">
+                <h:outputText value="#{result.x}"/>
+            </p:column>
+            <p:column headerText="Y">
+                <h:outputText value="#{result.y}"/>
+            </p:column>
+            <p:column headerText="R">
+                <h:outputText value="#{result.r}"/>
+            </p:column>
+            <p:column headerText="Result">
+                <h:outputText value="#{result.hit ? 'Inside' : 'Outside'}"/>
+            </p:column>
+            <p:column headerText="Curr.time">
+                <h:outputText value="#{result.time}"/>
+            </p:column>
+            <p:column headerText="Exec.time">
+                <h:outputText value="#{result.executionTime}"/>
+            </p:column>
+        </p:dataTable>
+        <h:outputText id="floatingMessage" styleClass="floating-message"
+                      style="display:none;" value="Error message"/>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width;
+        const height = canvas.height;    
+
+
+        function drawCoordinateSystem(R) {
+            ctx.clearRect(0, 0, width, height);
+            const scale = width / (4 * R);
+
+            ctx.beginPath();
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+            ctx.stroke();
+
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#000000";
+            const markings = [-R, -R / 2, R / 2, R];
+
+            markings.forEach((mark) => {
+                const x = width / 2 + mark * scale;
+                const y = height / 2 - mark * scale;
+
+                ctx.beginPath();
+                ctx.moveTo(x, height / 2 - 5);
+                ctx.lineTo(x, height / 2 + 5);
+                ctx.stroke();
+                ctx.fillText(mark === 0 ? "" : mark.toString(), x, height / 2 + 20);
+
+                ctx.beginPath();
+                ctx.moveTo(width / 2 - 5, y);
+                ctx.lineTo(width / 2 + 5, y);
+                ctx.stroke();
+                ctx.fillText(mark === 0 ? "" : mark.toString(), width / 2 - 20, y);
+            });
+
+            ctx.fillText("X", width - 10, height / 2 - 20);
+            ctx.fillText("Y", width / 2 + 20, 10);
+        }
+
+        //<![CDATA[ 
+        function validateRYInput() {
+            return validateRInput() && validateYInput();
+        }
+        //]]>
+
+        function validateRInput() {
+            const checkedR = document.querySelector('input[name="areaCheckForm:r"]:checked');
+            if (checkedR == null){
+                showFloatingMessage('You have to choose R first.');
+                return false;
+            }
+            return true;
+        }
+
+        function validateYInput() {
+            const yInput = document.getElementById("areaCheckForm:y");
+            const value = parseFloat(yInput.value);
+            
+            if (isNaN(value) || yInput.value.trim() === "") {
+                showFloatingMessage('Y must be a valid number.');
+                return false;
+            }
+
+            return true;
+        }
+
+
+        function getAllResultsFromTable() {
+            const tableBody = document.getElementById('resultsTable_data');
+            const rows = tableBody.getElementsByTagName('tr');
+
+            const results = [];
+            for (let row of rows) {
+                const cells = row.getElementsByTagName('td');
+                const x = parseFloat(cells[1].textContent);
+                const y = parseFloat(cells[2].textContent);
+                const r = parseFloat(cells[3].textContent);
+                const hitText = cells[4].textContent.trim();
+                const hit = hitText === 'Inside';
+                results.push({ x, y, r, hit });
+            }
+
+            return results;
+        }
+
+
+        function drawAreas(R) {
+            const scale = width / (4 * R);
+
+            ctx.fillStyle = "rgba(0, 0, 255, 0.3)";
+            ctx.fillRect(width / 2 - R * scale, height / 2 - (R / 2) * scale, R * scale, (R / 2) * scale);
+
+            ctx.beginPath();
+            ctx.moveTo(width / 2, height / 2);
+            ctx.lineTo(width / 2 + R * scale, height / 2);
+            ctx.lineTo(width / 2, height / 2 + (R / 2) * scale);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(width / 2, height / 2);
+            ctx.arc(width / 2, height / 2, R * scale, -Math.PI / 2, 0);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function updateCanvas() {
+            const rInput = document.querySelector('input[name="areaCheckForm:r"]:checked');
+            if (!rInput) {
+                drawCoordinateSystem(1);
+                drawAreas(1);
+                return;
+            }
+            const r = parseFloat(rInput.value);
+            drawCoordinateSystem(r);
+            drawAreas(r);
+            drawAllPoints(r);
+        }
+
+
+        const radioButtons = document.querySelectorAll('input[name="areaCheckForm:r"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', updateCanvas);
+        });
+
+        const observer = new MutationObserver((mutations, observer) => {
+            updateCanvas();
+        });
+
+        const targetNode = document.querySelector('.container');
+        const config = { attributes: true, childList: true, subtree: true };
+        observer.observe(targetNode, config);
+
+
+        
+        let messageTimeout;
+        function showFloatingMessage(message) {
+            const messageDiv = document.getElementById("floatingMessage");
+            messageDiv.textContent = message;
+            messageDiv.style.display = "block";
+            
+            if (messageTimeout) {
+                clearTimeout(messageTimeout);
+            }
+            
+            messageTimeout = setTimeout(() => {
+                messageDiv.style.display = "none";
+            }, 1500);
+        }
+
+        function limitYInput() {
+            const yInput = document.getElementById("areaCheckForm:y");
+            yInput.addEventListener("input", function () {
+                let value = parseFloat(this.value);
+                if (value > 5) {
+                    this.value = 5;
+                } else if (value &lt; -3) {
+                    this.value = -3;
+                }
+                const valueStr = this.value;
+                const decimalIndex = valueStr.indexOf(".");
+                if (decimalIndex !== -1) {
+                    const floatPart = valueStr.substring(decimalIndex + 1);
+                    const maxLength = 15;
+
+                    if (floatPart.length &gt; maxLength) {
+                        this.value = parseFloat(valueStr).toFixed(maxLength);
+                    }
+                }
+            });
+        }
+        const allowedXValues = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
+        function findNearestX(value) {
+            return allowedXValues.reduce((prev, curr) => 
+                Math.abs(curr - value) &lt; Math.abs(prev - value) ? curr : prev
+            );
+        }
+
+        canvas.addEventListener('click', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const checkedR = document.querySelector('input[name="areaCheckForm:r"]:checked');
+            if (checkedR == null){
+                showFloatingMessage('You have to choose R first.');
+                return;
+            }
+            const r = checkedR.value;
+            let x = ((event.clientX - rect.left) / width) * (4 * r) - 2*r; 
+            const y = -((event.clientY - rect.top) / height) * (4 * r) + 2*r; 
+            x = findNearestX(x);
+
+            document.getElementById('areaCheckForm:x_input').value = x;
+            document.getElementById('areaCheckForm:y').value = y.toFixed(2);
+        });
+
+        function getLastResultFromTable() {
+            const tableBody = document.getElementById('resultsTable_data');
+            const rows = tableBody.getElementsByTagName('tr');
+
+            if (rows.length === 0) {
+                console.error('No rows found in the table.');
+                return null;
+            }
+
+            const lastRow = rows[rows.length - 1];
+
+            const cells = lastRow.getElementsByTagName('td');
+
+            const x = parseFloat(cells[1].textContent);
+            const y = parseFloat(cells[2].textContent);
+            const r = parseFloat(cells[3].textContent);
+
+            return { x, y, r };
+        }
+
+        //<![CDATA[ 
+        function isPointInsideArea(x, y, R) {
+            const insideRectangle = x >= -R && x <= 0 && y <= R/2 && y >= 0;
+            const insideTriangle = x >= 0 && y <= 0 && y >= x/2 - R/2;
+            const insideQuarterCircle = x >= 0 && y >= 0 && (x*x + y*y <= R*R);
+
+            return insideRectangle || insideTriangle || insideQuarterCircle;
+        }
+
+        //]]>
+
+        function drawPoint(x, y, pointR, currentR) {
+            const scale = width / (4 * pointR);
+            const ratio = pointR / currentR;
+
+            const hit = isPointInsideArea(x, y, currentR);
+            ctx.fillStyle = hit ? "green" : "red";
+
+            ctx.beginPath();
+            ctx.arc(width / 2 + x * scale * ratio, height / 2 - y * scale * ratio, 3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function drawAllPoints(currentR) {
+            const results = getAllResultsFromTable();
+            for (let result of results) {
+                drawPoint(result.x, result.y, result.r, currentR);
+            }
+        }
+
+
+
+
+        limitYInput();
+        window.onload = function() {
+            updateCanvas();
+        };
+    </script>
+</h:body>
+</html>

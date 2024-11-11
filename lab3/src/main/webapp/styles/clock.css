@@ -1,0 +1,78 @@
+body {
+    background-color: #f0f4f8;
+    color: #333;
+    margin: 0;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: "Press Start 2P", system-ui;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-gap: 20px;
+    background-color: #ffffff;
+    padding: 40px 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    width: 400px;
+}
+
+.header {
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #ff00dd;
+}
+
+.header p {
+    font-size: 14px;
+    margin: 0;
+}
+
+.clock-container {
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    text-align: center;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 20px;
+    border: 2px solid #ff00dd;
+}
+
+.clock-time {
+    font-size: 48px;
+    color: #ff00dd;
+    margin: 0;
+}
+
+.clock-date {
+    font-size: 18px;
+    color: #333;
+    margin-top: 10px;
+}
+
+@keyframes glowing {
+    0% {
+        box-shadow: 0 0 5px #ff00dd, 0 0 5px #ff00dd;
+    }
+    50% {
+        box-shadow: 0 0 20px #ff00dd, 0 0 20px #ff00dd;
+    }
+    100% {
+        box-shadow: 0 0 5px #ff00dd, 0 0 5px #ff00dd;
+    }
+}
+
+.clock-container {
+    animation: glowing 2s infinite alternate;
+}
