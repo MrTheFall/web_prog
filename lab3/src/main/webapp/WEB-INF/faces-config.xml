@@ -4,6 +4,14 @@
                                   http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd"
               version="2.2">
 
+    <!--<flow-definition id="test">
+        <flow-id>test</flow-id>
+        <view id="/index.xhtml">/index.xhtml</view>
+        <flow-return>
+            <from-outcome>exitFlow</from-outcome>
+        </flow-return>
+    </flow-definition>-->
+    
     <navigation-rule>
         <from-view-id>/index.xhtml</from-view-id>
         <navigation-case>

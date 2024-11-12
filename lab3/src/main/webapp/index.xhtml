@@ -29,6 +29,20 @@
         <div class="clock-container">
             <h2 class="clock-time" id="clockTime">00:00:00</h2>
             <p class="clock-date" id="clockDate">yyyy-mm-dd</p>
+
+            <h:outputLabel for="ApplicationScoped" value="ApplicationScoped: #{applicationScopedBean.x}" styleClass="controls-label"/>
+            <h:outputLabel for="RequestScoped" value="RequestScoped: #{requestScopedBean.x}" styleClass="controls-label"/>
+            <h:outputLabel for="SessionScoped" value="SessionScoped: #{sessionScopedBean.x}" styleClass="controls-label"/>
+            <h:form>
+                <h:outputLabel for="ViewScoped" value="ViewScoped: #{viewScopedBean.x}" id="controls-label-viewscoped" styleClass="controls-label"/>
+                <h:commandButton value="Check Point" 
+                    action="#{viewScopedBean.inc()}" 
+                    styleClass="submit-button">
+                <f:ajax execute="@form" render="controls-label-viewscoped"/>
+                </h:commandButton>
+            </h:form>
+            <!--<h:outputLabel for="FlowScoped" value="FlowScoped: #{flowScopedBean.x}" styleClass="controls-label"/>-->
+       
         </div>
     </div>
 
