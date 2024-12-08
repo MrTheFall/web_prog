@@ -1,0 +1,10 @@
+/front/node_modules/
+/.idea/
+/front/target/
+/front/.eslintcache
+/lab4.iml
+/target/
+/src/main/webapp/build/
+/front/node/
+/src/main/webapp/build/
+/src/main/webapp/build/

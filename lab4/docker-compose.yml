@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  db:
+    environment:
+        POSTGRES_DB: postgres
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: password
+    build: ./db
+    volumes:
+      - ./db/pg-data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    environment:
+      - JWT_SECRET_KEY=qwiuefosjbnmreskfjdiv
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:8080"
