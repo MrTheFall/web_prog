@@ -4,7 +4,7 @@
       <h1>
         <router-link to="/logout" class="header-link">Area Checker</router-link>
       </h1>
-      <p>Ильин Никита | P3210 | 408698 | Вар. 413431</p>
+      <p>Ильин Никита | P3210 | 408698 | Вар. 663</p>
     </header>
     <form @submit.prevent="checkPoint" class="controls">
       <div>
@@ -34,7 +34,7 @@
           {{ value }}
         </label>
       </div>
-      <button type="submit" class="submit-button">Check Point</button>
+      <button type="submit" id="submitButton" class="submit-button">Check Point</button>
     </form>
     <canvas id="canvas" width="400" height="400" @click="onCanvasClick"></canvas>
     <div id="result" class="result">{{ resultMessage }}</div>
@@ -77,16 +77,19 @@ export default {
       x: null,
       y: null,
       r: 1,
-      xValues: [-5, -4, -3, -2, -1, 0, 1, 2, 3],
-      rValues: [1, 1.5, 2, 2.5, 3],
+      xValues: [-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2],
+      rValues: [-2, -1.5, -0.5, 0, 0.5, 1, 1.5, 2],
       results: [],
       resultMessage: '',
       errorMessage: '',
+      submitButton: null,
       canvas: null,
-      ctx: null,
+      ctx: null, 
+      errorTimeout: null,
     };
   },
   mounted() {
+    this.submitButton = document.getElementById('submitButton');
     this.canvas = document.getElementById('canvas');
     this.ctx = this.canvas.getContext('2d');
     this.updateCanvas();
@@ -110,6 +113,10 @@ export default {
       }
     },
     drawCoordinateSystem(R) {
+      if (R <= 0) {
+        this.showError('Incorrect R value');
+        return;
+      }
       const width = this.canvas.width;
       const height = this.canvas.height;    
       this.ctx.clearRect(0, 0, width, height);
@@ -144,6 +151,10 @@ export default {
       this.ctx.fillText("Y", width / 2 + 20, 10);
     },
     drawAreas(R) {
+      if (R <= 0) {
+        this.showError('Incorrect R value');
+        return;
+      }
       const width = this.canvas.width;
       const height = this.canvas.height;
       const scale = width / (4 * R);
@@ -165,41 +176,34 @@ export default {
       this.ctx.fill();
     },
     async updateCanvas() {
-      // Reset results array before fetching new data
       if (!this.r) {
         this.drawCoordinateSystem(1);
         this.drawAreas(1);
         return;
       }
 
-      // Fetch the hits data
       try {
         const response = await this.$axios.get('/api/points/get');
 
-        // Assuming the response data is an array of hit objects
-        const hitsData = response.data; // [{}, {}] format expected
+        const hitsData = response.data;
 
-        // Parse the received data
         this.results = hitsData.map(hit => {
           return {
-            id: parseInt(hit.id), // Ensure ID is parsed as an integer
-            x: parseFloat(hit.X), // Convert string to float
-            y: parseFloat(hit.Y), // Convert string to float
-            r: parseFloat(hit.R), // Convert string to float
+            id: parseInt(hit.id),
+            x: parseFloat(hit.X),
+            y: parseFloat(hit.Y),
+            r: parseFloat(hit.R),
             scriptTime: hit.script_time,
             date: hit.date,
-            hit: hit.status === 'true' // Convert string 'true'/'false' to boolean
+            hit: hit.status === 'true'
           };
         });
 
-        // Now you can proceed to draw the canvas with the current r value
         this.drawCoordinateSystem(this.r);
         this.drawAreas(this.r);
         this.drawAllPoints(this.r);
       } catch (error) {
-        // Handle errors
         if (error.response && error.response.status === 401) {
-          // Redirect to /auth on 401 Unauthorized response
           this.$router.push('/auth');
         } else {
           console.error('Failed to fetch hits data:', error);
@@ -223,6 +227,10 @@ export default {
       this.ctx.fill();
     },
     drawAllPoints(currentR) {
+      if (currentR <= 0) {
+        this.showError('Incorrect R value');
+        return;
+      }
       this.results.forEach(result => {
         this.drawPoint(result.x, result.y, result.r, currentR);
       });
@@ -250,18 +258,25 @@ export default {
       this.checkPoint();
     },
     findNearestX(value) {
-      const allowedXValues = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
-      return allowedXValues.reduce((prev, curr) => Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev);
+      return this.xValues.reduce((prev, curr) => Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev);
     },
     showError(message) {
       this.errorMessage = message;
-      setTimeout(() => {
+      if (this.errorTimeout) {
+        clearTimeout(this.errorTimeout);
+      }
+      this.errorTimeout = setTimeout(() => {
         this.errorMessage = '';
+        this.errorTimeout = null
       }, 1500);
     },
     async checkPoint() {
       if (this.x === null || this.y === null || this.r === null) {
         this.showError('Please make sure all fields are filled out correctly.');
+        return;
+      }
+      if (this.r <= 0) {
+        this.showError('Incorrect R value selected.');
         return;
       }
 
@@ -272,22 +287,19 @@ export default {
           r: this.r
         });
 
-        // Assuming the response contains the JSON structure you've provided
         const resultData = response.data; 
 
-        // Map the response data to the expected format
         const processedData = {
           id: parseInt(resultData.id),
-          x: parseFloat(resultData.X),  // Convert string to float
-          y: parseFloat(resultData.Y),  // Convert string to float
-          r: parseFloat(resultData.R),  // Convert string to float
+          x: parseFloat(resultData.X),
+          y: parseFloat(resultData.Y),
+          r: parseFloat(resultData.R),
           scriptTime: resultData.script_time,
           date: resultData.date,
-          hit: resultData.status === 'true' // Convert string 'true'/'false' to boolean
+          hit: resultData.status === 'true'
         };
 
         this.results.push(processedData);
-        // Update result message based on the result
         this.resultMessage = processedData.hit ? 
           'The point is inside the area.' : 
           'The point is outside the area.';
@@ -304,7 +316,6 @@ export default {
 
 
 <style scoped>
-/* Tablet and mobile mode */
 @media (max-width: 1201px) {
     .container {
         min-width: auto;
@@ -322,8 +333,7 @@ export default {
     }
 }
 
-/* Mobile mode (phones and very small devices) */
-@media (max-width: 600px) {
+@media (max-width: 803px) {
     .container {
         min-width: auto;
         padding: 15px;
@@ -360,7 +370,6 @@ export default {
         padding: 4px;
     }
 
-    /* Adjust canvas size on mobile */
     #canvas {
         width: 300px;
         height: 300px;

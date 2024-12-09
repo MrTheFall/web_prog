@@ -18,6 +18,9 @@
       <button type="submit" class="submit-button">{{ isLogin ? 'Войти' : 'Зарегистрироваться' }}</button>
       <button type="button" @click="toggleMode" class="toggle-button">{{ isLogin ? 'Перейти к регистрации' : 'Перейти к входу' }}</button>
     </form>
+    <p id="floatingMessage" class="floating-message" v-if="errorMessage">
+      {{ errorMessage }}
+    </p>
   </div>
 </template>
 
@@ -28,7 +31,8 @@ export default {
     return {
       username: '',
       password: '',
-      isLogin: true, // Toggle between login and registration
+      isLogin: true,
+      errorMessage: '',
     };
   },
   methods: {
@@ -45,18 +49,26 @@ export default {
       try {
         const response = await this.$axios.post(endpoint, payload);
         
-        // Check if the response status is 200
         if (response.status === 200) {
-          // Redirect to /app upon successful login or registration
-          this.$router.push('/app');
+          if (this.isLogin) {
+            this.$router.push('/app');
+          }
+          else {
+            this.isLogin = true;
+          }
         }
         
-        console.log('Success:', response.data); // Additional success logging if needed
+        console.log('Success:', response.data);
       } catch (error) {
-        // Handle error (for example, display an error message)
-        console.error('Error:', error.response ? error.response.data : error);
-        this.showError('An error occurred. Please try again.'); // Assuming you have a showError method to notify the user
+        console.error('Error:', error.message);
+        this.showError(error.response.data.message); 
       }
+    },
+    showError(message) {
+      this.errorMessage = message;
+      setTimeout(() => {
+        this.errorMessage = '';
+      }, 1500);
     },
     toggleMode() {
       this.isLogin = !this.isLogin; // Switch between login and registration

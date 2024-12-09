@@ -1,11 +1,11 @@
 package com.example.AreaChecker.controller;
 
-import com.google.common.hash.Hashing;
 import com.example.AreaChecker.model.dao.ShotDao;
 import com.example.AreaChecker.model.dao.UserDao;
 import com.example.AreaChecker.model.entity.Shot;
 import com.example.AreaChecker.model.entity.User;
 //import com.example.AreaChecker.util.ShotValidator;
+import com.example.AreaChecker.util.AuthUtil;
 
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
+import java.security.NoSuchAlgorithmException;
 
 @Singleton
 public class GlobalBean{
@@ -50,7 +51,13 @@ public class GlobalBean{
     }
 
     public boolean isRegistered(String username, String password) {
-        String hashPassword = Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
+        //String hashPassword = Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
+        String hashPassword = "";
+        try {
+            hashPassword = AuthUtil.hashPassword(password);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("No hashing alg found", e);
+        }
         User user = userDao.getUserByUsername(username);
         return user != null && user.getPassword().equals(hashPassword);
     }

@@ -76,7 +76,7 @@ body {
 
 .controls select,
 .controls input[type="number"] {
-    width: 90%;
+    width: 80%;
     padding: 8px;
     border-radius: 5px;
     border: 1px solid #ccc;
@@ -87,14 +87,14 @@ body {
 	grid-column: span 2;
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-	grid-gap: 10px;
+	grid-gap: 25px;
 	justify-items: center;
     align-items: center
 }
 
 .controls .checkbox-group label {
 	font-weight: 400;
-	font-size: 14px;
+	font-size: 12px;
 	display: block;
 	text-align: center;
 }

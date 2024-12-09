@@ -1,6 +1,6 @@
 package com.example.AreaChecker.controller;
 
-import com.google.common.hash.Hashing;
+import com.example.AreaChecker.util.AuthUtil;
 import com.example.AreaChecker.model.entity.User;
 
 import jakarta.ejb.EJB;
@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 
 @Path("/auth/register")
 public class RegistrationController {
@@ -22,7 +23,14 @@ public class RegistrationController {
     public Response registration(UserRegistrationData registrationData) {
         User user = new User();
         user.setUsername(registrationData.getUsername());
-        user.setPassword(Hashing.sha256().hashString(registrationData.getPassword(), StandardCharsets.UTF_8).toString());
+        //user.setPassword(Hashing.sha256().hashString(registrationData.getPassword(), StandardCharsets.UTF_8).toString());
+        try {
+            user.setPassword(AuthUtil.hashPassword(registrationData.getPassword()));
+        } catch (NoSuchAlgorithmException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Hashing algorithm not found")
+                    .build();
+        }
 
         if (globalBean.isUsernameExists(registrationData.getUsername())) {
             return makeResponse(Response.status(Response.Status.FORBIDDEN).entity("{\"success\": false, \"message\":\"User already exists\"}"));

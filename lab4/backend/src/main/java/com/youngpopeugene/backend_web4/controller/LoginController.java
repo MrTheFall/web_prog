@@ -29,7 +29,7 @@ public class LoginController {
                     .cookie(jwtCookie));
         } else {
             return makeResponse(Response.status(Response.Status.FORBIDDEN)
-                    .entity("{\"success\": false, \"message\": \"Authorization is failed\"}"));
+                    .entity("{\"success\": false, \"message\": \"Login or password is incorrect\"}"));
         }
     }
 
