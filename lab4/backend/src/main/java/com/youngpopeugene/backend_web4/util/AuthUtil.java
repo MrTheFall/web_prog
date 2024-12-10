@@ -59,7 +59,7 @@ public class AuthUtil {
             Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT decodedJWT = verifier.verify(jwtToken);
-            return decodedJWT.getSubject(); // Assuming the username is stored in the 'sub' claim
+            return decodedJWT.getSubject();
         } catch (com.auth0.jwt.exceptions.JWTVerificationException e) {
             System.out.println("JWT verification error: " + e.getMessage());
             return null;

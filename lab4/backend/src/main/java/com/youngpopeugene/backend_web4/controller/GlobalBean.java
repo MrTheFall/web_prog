@@ -51,7 +51,6 @@ public class GlobalBean{
     }
 
     public boolean isRegistered(String username, String password) {
-        //String hashPassword = Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
         String hashPassword = "";
         try {
             hashPassword = AuthUtil.hashPassword(password);
